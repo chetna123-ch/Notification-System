@@ -1,0 +1,76 @@
+#include <iostream>
+#include <string>
+#include <memory>  // For std::unique_ptr
+#include <stdexcept>  // For std::invalid_argument
+
+// Abstract base class for Notifier (Interface)
+class Notifier {
+public:
+    virtual ~Notifier() = default;
+    virtual void send(const std::string& message) const = 0;  // Pure virtual method
+};
+
+// Concrete Notifier: Email
+class EmailNotifier : public Notifier {
+public:
+    void send(const std::string& message) const override {
+        std::cout << "[Email] Sending: " << message << std::endl;
+        // Simulation: In a real app, integrate SMTP logic here
+    }
+};
+
+// Concrete Notifier: SMS
+class SMSNotifier : public Notifier {
+public:
+    void send(const std::string& message) const override {
+        std::cout << "[SMS] Sending: " << message << std::endl;
+        // Simulation: In a real app, integrate SMS API logic here
+    }
+};
+
+// Concrete Notifier: Push Notification
+class PushNotifier : public Notifier {
+public:
+    void send(const std::string& message) const override {
+        std::cout << "[Push] Sending: " << message << std::endl;
+        // Simulation: In a real app, integrate FCM/APNs logic here
+    }
+};
+
+// Factory Class: Creates notifiers based on type
+class NotifierFactory {
+public:
+    static std::unique_ptr<Notifier> createNotifier(const std::string& type) {
+        if (type == "email") {
+            return std::make_unique<EmailNotifier>();
+        } else if (type == "sms") {
+            return std::make_unique<SMSNotifier>();
+        } else if (type == "push") {
+            return std::make_unique<PushNotifier>();
+        } else {
+            throw std::invalid_argument("Unknown notifier type: " + type);
+        }
+    }
+};
+
+// Main App: Interactive notification system
+int main() {
+    std::string type, message;
+    while (true) {
+        std::cout << "Enter notification type (email/sms/push) or 'quit': ";
+        std::cin >> type;
+        if (type == "quit") break;
+        
+        std::cout << "Enter message: ";
+        std::cin.ignore();  // Clear input buffer
+        std::getline(std::cin, message);
+        
+        try {
+            auto notifier = NotifierFactory::createNotifier(type);
+            notifier->send(message);
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+    return 0;
+}
